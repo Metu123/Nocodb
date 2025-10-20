@@ -1,21 +1,28 @@
 # ────────────────────────────────────────────────
-# ✅ NocoDB Render Auto Backend
-# Works with PostgreSQL or MySQL
-# Automatically connects via environment variables
+# ✅ NocoDB Auto Setup (Render-Ready)
+# Works with PostgreSQL/MySQL
+# Node 22 required for latest NocoDB
 # ────────────────────────────────────────────────
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
-# Install NocoDB globally
-RUN npm install -g nocodb@latest
+# Disable the pnpm restriction (causes npm install failure)
+ENV NOCODB_SKIP_ONLY_ALLOW_PNPM=true
 
-# Expose default NocoDB port
+# Install NocoDB globally using npm
+RUN npm install -g nocodb@latest --ignore-scripts
+
+# Expose default port
 EXPOSE 8080
 
-# Environment variables for NocoDB
-ENV NC_DB="pg://$DATABASE_USERNAME:$DATABASE_PASSWORD@$DATABASE_HOST:$DATABASE_PORT/$DATABASE_NAME?ssl=true"
-ENV NC_AUTH_JWT_SECRET="supersecretjwtkey"
+# Environment variables (Render will inject)
+# Example:
+# DATABASE_URL=pg://username:password@hostname:5432/dbname
+# NC_ADMIN_EMAIL=admin@example.com
+# NC_ADMIN_PASSWORD=admin123
+# NC_AUTH_JWT_SECRET=random-secret
+# NC_PUBLIC_URL=https://your-app.onrender.com
 
 # Healthcheck for Render
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s CMD wget -qO- http://localhost:8080/api/v1/db/meta || exit 1
