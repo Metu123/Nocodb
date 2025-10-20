@@ -1,16 +1,18 @@
-# Use Node.js LTS as base
+# Use Node.js LTS
 FROM node:20-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Install system dependencies: bash, curl, PostgreSQL client
-RUN apk add --no-cache bash curl postgresql-client
+# Install system dependencies
+RUN apk add --no-cache bash curl postgresql-client git
 
-# Install NocoDB globally
-RUN npm install -g nocodb
+# Install pnpm
+RUN npm install -g pnpm
 
-# Expose NocoDB port
+# Install NocoDB using pnpm
+RUN pnpm add -g nocodb
+
+# Expose port
 EXPOSE 8080
 
 # Environment variables
@@ -21,7 +23,7 @@ ENV NC_AUTH_JWT_SECRET=supersecretjwtkey
 ENV NC_PUBLIC_URL=https://<your-render-app>.onrender.com
 ENV PORT=8080
 
-# Add startup script directly
+# Embedded startup script
 RUN echo '#!/bin/bash\n\
 set -e\n\
 echo "🚀 Starting NocoDB setup..."\n\
@@ -35,5 +37,4 @@ echo "🚀 Starting NocoDB..."\n\
 npx nc start --port 8080' > /app/start.sh \
 && chmod +x /app/start.sh
 
-# Start container using the embedded script
 CMD ["/app/start.sh"]
