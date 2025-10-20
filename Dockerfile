@@ -9,5 +9,5 @@ ENV NC_PUBLIC_URL=https://nocodb-h7te.onrender.com
 ENV PORT=${PORT:-8080}
 EXPOSE $PORT
 
-# Start NocoDB on the correct port (shell form to expand $PORT)
+# Start NocoDB on the correct port (shell form)
 CMD npx nocodb serve --port $PORT
