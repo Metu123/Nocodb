@@ -1,5 +1,5 @@
 # ---------------------------
-# ✅ NocoDB Dockerfile (Node 22-alpine + PostgreSQL + Render)
+# ✅ NocoDB Dockerfile for Render (Node 22-alpine)
 # ---------------------------
 
 FROM node:22-alpine
@@ -7,18 +7,18 @@ FROM node:22-alpine
 # Set working directory
 WORKDIR /app
 
-# Install wget for healthcheck and NocoDB globally
-RUN apk add --no-cache wget && npm install -g nocodb@latest --ignore-scripts
+# Install dependencies
+RUN apk add --no-cache wget && npm install -g nocodb@latest
 
-# Expose the default port
+# Expose port
 EXPOSE 8080
 
-# Set environment variables (Render overrides these automatically)
+# Set environment variable for Render
 ENV PORT=8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
   CMD wget --quiet --spider http://localhost:8080 || exit 1
 
-# Start NocoDB directly (not through npm)
-CMD ["noco"]
+# ✅ Start NocoDB using npx to avoid "module not found"
+CMD ["npx", "nocodb"]
