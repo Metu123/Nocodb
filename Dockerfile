@@ -4,8 +4,11 @@ FROM node:20-alpine
 # Set working directory
 WORKDIR /app
 
-# Install dependencies
-RUN npm install -g nocodb curl bash postgresql-client
+# Install system dependencies (bash, curl, PostgreSQL client)
+RUN apk add --no-cache bash curl postgresql-client
+
+# Install NocoDB globally via npm
+RUN npm install -g nocodb
 
 # Expose NocoDB port
 EXPOSE 8080
