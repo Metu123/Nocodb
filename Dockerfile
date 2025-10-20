@@ -1,24 +1,29 @@
-# ---------------------------
-# ✅ Render-ready Dockerfile for NocoDB using Node 22-alpine
-# ---------------------------
-
+# Use lightweight Node.js Alpine image
 FROM node:22-alpine
 
+# Set working directory
 WORKDIR /app
 
-# Install required packages and pnpm first
-RUN apk add --no-cache wget bash \
-  && npm install -g pnpm@latest \
-  && pnpm add -g nocodb@latest
+# Install required packages and pnpm
+RUN apk add --no-cache wget bash curl \
+    && npm install -g pnpm@latest
 
-# Expose default port
+# Copy package.json and package-lock (if you have them)
+# Not strictly necessary for global install, but useful for local dev
+COPY package*.json ./
+
+# Install NocoDB globally using pnpm
+RUN pnpm add -g nocodb@latest
+
+# Copy the rest of your app (optional, if you have local config or scripts)
+COPY . .
+
+# Expose the port NocoDB will run on
 EXPOSE 8080
 
-ENV PORT=8080
+# Optional: automatically load .env if it exists (for local development)
+# Render will override these with its environment variables
+RUN if [ -f .env ]; then export $(cat .env | xargs); fi
 
-# Health check for Render
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD wget --quiet --spider http://localhost:8080 || exit 1
-
-# ✅ Start NocoDB via pnpm
-CMD ["pnpm", "nocodb"]
+# Run NocoDB
+CMD ["npx", "nocodb", "serve", "--port", "8080"]
