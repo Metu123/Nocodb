@@ -13,5 +13,12 @@ ENV NC_PUBLIC_URL="https://nocodb-h7te.onrender.com"
 ENV PORT=${PORT:-8080}
 EXPOSE $PORT
 
+# Copy app source code
+WORKDIR /usr/src/app
+COPY . .
+
+# Install dependencies using pnpm (this will include cross-env)
+RUN pnpm install --frozen-lockfile
+
 # Start NocoDB with pnpm
 CMD ["pnpm", "start"]
