@@ -1,8 +1,8 @@
 FROM nocodb/nocodb:latest
 
-# Copy .env file
-COPY .env .env
+# Expose dynamic port
+ENV PORT=${PORT:-8080}
+EXPOSE $PORT
 
-EXPOSE 8080
-
-CMD npx nocodb serve --port ${PORT:-8080}
+# Start NocoDB
+CMD npx nocodb serve --port $PORT
