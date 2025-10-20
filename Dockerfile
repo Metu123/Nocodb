@@ -1,29 +1,36 @@
-# Use lightweight Node.js Alpine image
-FROM node:22-alpine
+# Use Node.js LTS as base
+FROM node:20-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Install required packages and pnpm
-RUN apk add --no-cache wget bash curl \
-    && npm install -g pnpm@latest
+# Install dependencies
+RUN npm install -g nocodb curl bash postgresql-client
 
-# Copy package.json and package-lock (if you have them)
-# Not strictly necessary for global install, but useful for local dev
-COPY package*.json ./
-
-# Install NocoDB globally using pnpm
-RUN pnpm add -g nocodb@latest
-
-# Copy the rest of your app (optional, if you have local config or scripts)
-COPY . .
-
-# Expose the port NocoDB will run on
+# Expose NocoDB port
 EXPOSE 8080
 
-# Optional: automatically load .env if it exists (for local development)
-# Render will override these with its environment variables
-RUN if [ -f .env ]; then export $(cat .env | xargs); fi
+# Set environment variables
+ENV DATABASE_URL=pg://blogdb_wa32_user:CIGGSSBf8qGb7Y1Ej5kKoVlelMnRm8rZ@dpg-d3r1qemmcj7s73bipki0-a.oregon-postgres.render.com:5432/blogdb_wa32?ssl=true
+ENV NC_ADMIN_EMAIL=desta1037@gmail.com
+ENV NC_ADMIN_PASSWORD=admin123
+ENV NC_AUTH_JWT_SECRET=supersecretjwtkey
+ENV NC_PUBLIC_URL=https://<your-render-app>.onrender.com
+ENV PORT=8080
 
-# Run NocoDB
-CMD ["npx", "nocodb", "serve", "--port", "8080"]
+# Add startup script directly
+RUN echo '#!/bin/bash\n\
+set -e\n\
+echo "🚀 Starting NocoDB setup..."\n\
+echo "🔍 Checking PostgreSQL connection..."\n\
+until pg_isready -d "$DATABASE_URL" > /dev/null 2>&1; do\n\
+  echo "⏳ Waiting for database..."\n\
+  sleep 3\n\
+done\n\
+echo "✅ Database is reachable!"\n\
+echo "🚀 Starting NocoDB..."\n\
+npx nc start --port 8080' > /app/start.sh \
+&& chmod +x /app/start.sh
+
+# Start container using the embedded startup script
+CMD ["/app/start.sh"]
