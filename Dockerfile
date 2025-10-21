@@ -18,8 +18,7 @@ RUN apt-get update && apt-get install -y \
     libjpeg62-turbo-dev \
     libicu-dev \
     default-mysql-server \
-    ftp \
-    && docker-php-ext-install pdo_mysql zip exif pcntl gd bcmath sockets \
+    && docker-php-ext-install pdo_mysql zip exif pcntl gd bcmath sockets ftp \
     && pecl install mongodb \
     && docker-php-ext-enable mongodb
 
@@ -68,7 +67,7 @@ EOF
 # Install Composer and project dependencies
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
-    && composer install --no-dev --optimize-autoloader
+    && composer install --ignore-platform-req=ext-ftp --no-dev --optimize-autoloader
 
 # Copy your app source code
 COPY . .
