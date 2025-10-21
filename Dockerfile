@@ -1,14 +1,14 @@
 # Base image
 FROM php:8.1-apache
 
-# Install system dependencies
+# Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
-    git unzip libpng-dev libonig-dev libxml2-dev \
-    libzip-dev zip curl mariadb-client && \
-    docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip
-
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+    git unzip libpng-dev libonig-dev libxml2-dev libzip-dev zip curl mariadb-client libssl-dev pkg-config \
+    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sockets \
+    && pecl install mongodb \
+    && docker-php-ext-enable mongodb \
+    && a2enmod rewrite \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
