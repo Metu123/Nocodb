@@ -4,11 +4,11 @@ FROM php:8.1-apache
 # Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
     git unzip libpng-dev libonig-dev libxml2-dev libzip-dev zip curl mariadb-client libssl-dev pkg-config \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sockets \
-    && pecl install mongodb \
-    && docker-php-ext-enable mongodb \
-    && a2enmod rewrite \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    libcurl4-openssl-dev && \
+    docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sockets && \
+    pecl install mongodb && docker-php-ext-enable mongodb && \
+    a2enmod rewrite && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -21,7 +21,7 @@ WORKDIR /var/www/html
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Hardcoded configuration
+# Hardcoded configuration (replace DB_HOST with your MySQL host)
 RUN echo "APP_ENV=production" > .env && \
     echo "APP_KEY=base64:SomeRandomGeneratedKey123456==" >> .env && \
     echo "APP_DEBUG=false" >> .env && \
@@ -40,7 +40,7 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # Expose port 80
 EXPOSE 80
 
-# Run migrations, setup admin, and start Apache
+# Run migrations, setup admin, start Apache
 CMD php artisan migrate --force && \
     php artisan df:setup --email=admin@example.com --password=admin123 && \
     apache2-foreground
